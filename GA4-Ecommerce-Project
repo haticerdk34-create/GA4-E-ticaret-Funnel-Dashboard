@@ -1,0 +1,40 @@
+SELECT
+  event_date,
+
+  traffic_source.source AS source,
+  traffic_source.medium AS medium,
+  traffic_source.name AS campaign,
+
+  device.category AS device_category,
+  device.language AS device_language,
+  device.operating_system AS operating_system,
+
+  (
+    SELECT value.string_value
+    FROM UNNEST(event_params)
+    WHERE key = 'page_location'
+  ) AS landing_page,
+
+  COUNTIF(event_name='session_start') AS sessions,
+  COUNTIF(event_name='purchase') AS orders,
+
+  SUM(ecommerce.purchase_revenue) AS revenue,
+
+  COUNTIF(event_name='view_item') AS product_views,
+  COUNTIF(event_name='add_to_cart') AS add_to_cart,
+  COUNTIF(event_name='begin_checkout') AS begin_checkout,
+  COUNTIF(event_name='add_shipping_info') AS add_shipping_info,
+  COUNTIF(event_name='add_payment_info') AS add_payment_info
+
+FROM
+  `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`
+
+GROUP BY
+  event_date,
+  source,
+  medium,
+  campaign,
+  device_category,
+  device_language,
+  operating_system,
+  landing_page
